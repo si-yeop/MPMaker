@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Music Player Image Maker</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f5f1ea;
+        --paper: #fffdf9;
+        --panel: #fbf8f2;
+        --ink: #111;
+        --muted: #786f62;
+        --line: #e4ddd1;
+        --focus: #b9aa8d;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--ink);
+        font-family:
+          Pretendard,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      button {
+        border: 0;
+        cursor: pointer;
+      }
+
+      .app {
+        width: min(100%, 1760px);
+        margin: 0 auto;
+        padding: 28px;
+      }
+
+      .header {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 18px;
+      }
+
+      .eyebrow {
+        margin: 0 0 8px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 30px;
+        line-height: 1.15;
+      }
+
+      .save-button {
+        min-width: 132px;
+        min-height: 46px;
+        border-radius: 999px;
+        padding: 0 22px;
+        background: #111;
+        color: #fff;
+        font-weight: 850;
+      }
+
+      .stage {
+        overflow: auto;
+        padding: 28px;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background: var(--paper);
+        box-shadow: 0 22px 70px rgba(73, 58, 36, 0.12);
+      }
+
+      #posterCanvas {
+        display: block;
+        width: min(100%, 1644px);
+        height: auto;
+        margin: 0 auto;
+        background: transparent;
+        border-radius: 38px;
+        box-shadow: 0 14px 38px rgba(22, 22, 22, 0.1);
+      }
+
+      .controls {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr 1.2fr;
+        gap: 14px;
+        margin-top: 16px;
+      }
+
+      .card {
+        display: grid;
+        gap: 12px;
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: var(--panel);
+      }
+
+      .card-title {
+        margin: 0;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .image-picker {
+        display: grid;
+        place-items: center;
+        gap: 6px;
+        min-height: 128px;
+        border: 1.5px dashed #c8bdad;
+        border-radius: 16px;
+        background: #fff;
+        cursor: pointer;
+        text-align: center;
+      }
+
+      .image-picker:hover {
+        border-color: #827866;
+      }
+
+      .image-picker input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .picker-main {
+        font-size: 18px;
+        font-weight: 850;
+      }
+
+      .picker-sub {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      label {
+        display: grid;
+        gap: 7px;
+        min-width: 0;
+      }
+
+      label > span {
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 750;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        min-height: 46px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 0 14px;
+        background: #fff;
+        color: #111;
+        outline: none;
+      }
+
+      input[type="text"]:focus {
+        border-color: var(--focus);
+        box-shadow: 0 0 0 4px rgba(185, 170, 141, 0.18);
+      }
+
+      input[type="range"] {
+        width: 100%;
+        accent-color: #111;
+      }
+
+      .range-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      @media (max-width: 1080px) {
+        .controls {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 680px) {
+        .app {
+          padding: 14px;
+        }
+
+        .header {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        h1 {
+          font-size: 24px;
+        }
+
+        .save-button {
+          width: 100%;
+        }
+
+        .stage {
+          padding: 14px;
+          border-radius: 18px;
+        }
+
+        .range-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <header class="header">
+        <div>
+          <p class="eyebrow">MUSIC PLAYER IMAGE</p>
+          <h1>&#48036;&#51649; &#54540;&#47112;&#51060;&#50612; &#52964;&#48260; &#47700;&#51060;&#52964;</h1>
+        </div>
+        <button id="downloadButton" class="save-button" type="button">PNG &#51200;&#51109;</button>
+      </header>
+
+      <section class="stage" aria-label="preview">
+        <canvas id="posterCanvas" width="1644" height="580" aria-label="music player image preview"></canvas>
+      </section>
+
+      <section class="controls" aria-label="editor controls">
+        <div class="card">
+          <p class="card-title">&#52964;&#48260;</p>
+          <label class="image-picker">
+            <input id="coverInput" type="file" accept="image/*" />
+            <span class="picker-main">&#51060;&#48120;&#51648; &#49440;&#53469;</span>
+            <span class="picker-sub">&#51088;&#46041;&#51004;&#47196; &#51221;&#49324;&#44033;&#54805; &#53356;&#47213;</span>
+          </label>
+        </div>
+
+        <div class="card">
+          <p class="card-title">&#53581;&#49828;&#53944;</p>
+          <label>
+            <span>&#51228;&#47785;</span>
+            <input id="titleInput" type="text" value="" autocomplete="off" />
+          </label>
+          <label>
+            <span>&#50500;&#54000;&#49828;&#53944;</span>
+            <input id="artistInput" type="text" value="" autocomplete="off" />
+          </label>
+        </div>
+
+        <div class="card">
+          <p class="card-title">&#51060;&#48120;&#51648; &#50948;&#52824;</p>
+          <div class="range-grid">
+            <label>
+              <span>&#54869;&#45824;</span>
+              <input id="zoomInput" type="range" min="1" max="3" step="0.01" value="1" />
+            </label>
+            <label>
+              <span>&#44032;&#47196;</span>
+              <input id="xInput" type="range" min="-1" max="1" step="0.01" value="0" />
+            </label>
+            <label>
+              <span>&#49464;&#47196;</span>
+              <input id="yInput" type="range" min="-1" max="1" step="0.01" value="0" />
+            </label>
+            <label>
+              <span>&#48148;&#44645; &#47784;&#49436;&#47532;</span>
+              <input id="radiusInput" type="range" min="0" max="80" step="1" value="38" />
+            </label>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const canvas = document.querySelector("#posterCanvas");
+      const ctx = canvas.getContext("2d");
+
+      const state = {
+        cover: null,
+        title: " ",
+        artist: " ",
+        zoom: 1,
+        offsetX: 0,
+        offsetY: 0,
+        outerRadius: 38,
+      };
+
+      const layout = {
+        width: 1644,
+        height: 580,
+        coverX: 70,
+        coverY: 68,
+        coverSize: 444,
+        textX: 515,
+        textWidth: 1080,
+        titleY: 252,
+        artistY: 420,
+      };
+
+      const controls = {
+        coverInput: document.querySelector("#coverInput"),
+        titleInput: document.querySelector("#titleInput"),
+        artistInput: document.querySelector("#artistInput"),
+        zoomInput: document.querySelector("#zoomInput"),
+        xInput: document.querySelector("#xInput"),
+        yInput: document.querySelector("#yInput"),
+        radiusInput: document.querySelector("#radiusInput"),
+        downloadButton: document.querySelector("#downloadButton"),
+      };
+
+      function roundedRectPath(context, x, y, width, height, radius) {
+        const r = Math.min(radius, width / 2, height / 2);
+        context.beginPath();
+        context.moveTo(x + r, y);
+        context.lineTo(x + width - r, y);
+        context.quadraticCurveTo(x + width, y, x + width, y + r);
+        context.lineTo(x + width, y + height - r);
+        context.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+        context.lineTo(x + r, y + height);
+        context.quadraticCurveTo(x, y + height, x, y + height - r);
+        context.lineTo(x, y + r);
+        context.quadraticCurveTo(x, y, x + r, y);
+        context.closePath();
+      }
+
+      function fontStack() {
+        return 'Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+      }
+
+      function fitFontSize(text, weight, maxSize, minSize, maxWidth) {
+        let size = maxSize;
+        while (size > minSize) {
+          ctx.font = `${weight} ${size}px ${fontStack()}`;
+          if (ctx.measureText(text).width <= maxWidth) return size;
+          size -= 2;
+        }
+        return minSize;
+      }
+
+      function drawCover() {
+        const { coverX, coverY, coverSize } = layout;
+        roundedRectPath(ctx, coverX, coverY, coverSize, coverSize, 38);
+        ctx.save();
+        ctx.clip();
+
+        if (!state.cover) {
+          ctx.fillStyle = "#f0eee9";
+          ctx.fillRect(coverX, coverY, coverSize, coverSize);
+          ctx.fillStyle = "#b8b0a3";
+          ctx.font = `800 42px ${fontStack()}`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("ALBUM", coverX + coverSize / 2, coverY + coverSize / 2);
+          ctx.restore();
+          return;
+        }
+
+        const image = state.cover;
+        const baseScale = Math.max(coverSize / image.width, coverSize / image.height);
+        const scale = baseScale * state.zoom;
+        const drawWidth = image.width * scale;
+        const drawHeight = image.height * scale;
+        const maxShiftX = Math.max(0, (drawWidth - coverSize) / 2);
+        const maxShiftY = Math.max(0, (drawHeight - coverSize) / 2);
+        const drawX = coverX + (coverSize - drawWidth) / 2 + state.offsetX * maxShiftX;
+        const drawY = coverY + (coverSize - drawHeight) / 2 + state.offsetY * maxShiftY;
+
+        ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+        ctx.restore();
+      }
+
+      function drawText() {
+        const centerX = layout.textX + layout.textWidth / 2;
+        const maxTextWidth = layout.textWidth - 70;
+        const titleSize = fitFontSize(state.title, 850, 132, 56, maxTextWidth);
+        const artistSize = fitFontSize(state.artist, 250, 94, 42, maxTextWidth);
+
+        ctx.fillStyle = "#000";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "alphabetic";
+
+        ctx.font = `850 ${titleSize}px ${fontStack()}`;
+        ctx.fillText(state.title, centerX, layout.titleY);
+
+        ctx.font = `250 ${artistSize}px ${fontStack()}`;
+        ctx.fillText(state.artist, centerX, layout.artistY);
+      }
+
+      function render() {
+        ctx.clearRect(0, 0, layout.width, layout.height);
+        ctx.save();
+        roundedRectPath(ctx, 0, 0, layout.width, layout.height, state.outerRadius);
+        ctx.clip();
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, layout.width, layout.height);
+        drawCover();
+        drawText();
+        ctx.restore();
+      }
+
+      function resetCropControls() {
+        state.zoom = 1;
+        state.offsetX = 0;
+        state.offsetY = 0;
+        controls.zoomInput.value = "1";
+        controls.xInput.value = "0";
+        controls.yInput.value = "0";
+      }
+
+      function loadCover(file) {
+        if (!file) return;
+        const image = new Image();
+        const source = URL.createObjectURL(file);
+
+        image.onload = () => {
+          state.cover = image;
+          resetCropControls();
+          render();
+          URL.revokeObjectURL(source);
+        };
+
+        image.onerror = () => {
+          URL.revokeObjectURL(source);
+        };
+
+        image.src = source;
+      }
+
+      controls.coverInput.addEventListener("change", (event) => {
+        loadCover(event.target.files[0]);
+      });
+
+      controls.titleInput.addEventListener("input", (event) => {
+        state.title = event.target.value || " ";
+        render();
+      });
+
+      controls.artistInput.addEventListener("input", (event) => {
+        state.artist = event.target.value || " ";
+        render();
+      });
+
+      controls.zoomInput.addEventListener("input", (event) => {
+        state.zoom = Number(event.target.value);
+        render();
+      });
+
+      controls.xInput.addEventListener("input", (event) => {
+        state.offsetX = Number(event.target.value);
+        render();
+      });
+
+      controls.yInput.addEventListener("input", (event) => {
+        state.offsetY = Number(event.target.value);
+        render();
+      });
+
+      controls.radiusInput.addEventListener("input", (event) => {
+        state.outerRadius = Number(event.target.value);
+        canvas.style.borderRadius = `${state.outerRadius}px`;
+        render();
+      });
+
+      controls.downloadButton.addEventListener("click", () => {
+        const link = document.createElement("a");
+        const safeTitle = state.title.trim().replace(/[\\/:*?"<>|]+/g, "-") || "music-player";
+        link.download = `${safeTitle}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      });
+
+      render();
+    </script>
+  </body>
+</html>
